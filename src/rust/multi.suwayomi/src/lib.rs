@@ -22,8 +22,8 @@ fn get_manga_list(filters: Vec<Filter>, page: i32) -> Result<MangaPageResult> {
 	let base_url = get_base_url()?;
 
 	let query = r#"
-		query GET_MANGA_LIST($condition: MangaConditionInput) {
-			mangas(condition: $condition) {
+		query GET_MANGA_LIST($condition: MangaConditionInput, $order: [MangaOrderInput!]) {
+			mangas(condition: $condition, order: $order) {
 				nodes {
 					id
 					title
@@ -39,12 +39,44 @@ fn get_manga_list(filters: Vec<Filter>, page: i32) -> Result<MangaPageResult> {
 		}
 		"#;
 
+
+	let mut condition = serde_json::Map::new();
+	condition.insert("inLibrary".to_string(), serde_json::json!(true));
+
+	let mut order: Vec<serde_json::Value> = Vec::new();
+
+	for filter in filters {
+		match filter.kind {
+			FilterType::Sort => {
+				if let Ok(value) = filter.value.as_object() {
+					let index = value.get("index").as_int().unwrap_or(0);
+					let ascending = value.get("ascending").as_bool().unwrap_or(true);
+					let property = match index {
+						0 => "TITLE",
+						1 => "IN_LIBRARY_AT",
+						2 => "LAST_FETCHED_AT",
+						_ => continue,
+					};
+					order.push(serde_json::json!({
+						"by": property,
+						"byType": if ascending { "ASC" } else { "DESC" }
+					}));
+				}
+			}
+			_ => continue
+		}
+	}
+
+	let mut variables = serde_json::Map::new();
+	variables.insert("condition".to_string(), serde_json::Value::Object(condition));
+	variables.insert("order".to_string(), serde_json::Value::Array(order));
+
+	let json_value = serde_json::Value::Object(variables);
+
 	let body = serde_json::json!({
 		"operationName": "GET_MANGA_LIST",
 		"query": query,
-		"variables": {
-			"condition": { "inLibrary": true },
-		}
+		"variables": json_value,
 	});
 
 	let data = Request::post(format!("{base_url}/api/graphql"))
