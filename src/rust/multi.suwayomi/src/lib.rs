@@ -21,8 +21,8 @@ fn get_manga_list(filters: Vec<Filter>, _page: i32) -> Result<MangaPageResult> {
 	let base_url = get_base_url()?;
 
 	let query = r#"
-		query GET_MANGA_LIST($condition: MangaConditionInput, $order: [MangaOrderInput!]) {
-			mangas(condition: $condition, order: $order) {
+		query GET_MANGA_LIST($condition: MangaConditionInput, $order: [MangaOrderInput!], $filter: MangaFilterInput) {
+			mangas(condition: $condition, order: $order, filter: $filter) {
 				nodes {
 					id
 					title
@@ -43,6 +43,8 @@ fn get_manga_list(filters: Vec<Filter>, _page: i32) -> Result<MangaPageResult> {
 
 	let mut order: Vec<serde_json::Value> = Vec::new();
 
+	let mut manga_filter = serde_json::Map::new();
+
 	for filter in filters {
 		match filter.kind {
 			FilterType::Sort => {
@@ -61,16 +63,21 @@ fn get_manga_list(filters: Vec<Filter>, _page: i32) -> Result<MangaPageResult> {
 					}));
 				}
 			}
+			FilterType::Title => {
+				if let Ok(value) = filter.value.as_string() {
+					manga_filter.insert("title".to_string(), serde_json::json!({
+						"likeInsensitive": format!("%{}%", value.read())
+					}));
+				}
+			}
 			_ => continue,
 		}
 	}
 
 	let mut variables = serde_json::Map::new();
-	variables.insert(
-		"condition".to_string(),
-		serde_json::Value::Object(condition),
-	);
+	variables.insert("condition".to_string(), serde_json::Value::Object(condition));
 	variables.insert("order".to_string(), serde_json::Value::Array(order));
+	variables.insert("filter".to_string(), serde_json::Value::Object(manga_filter));
 
 	let json_value = serde_json::Value::Object(variables);
 
