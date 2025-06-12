@@ -4,12 +4,11 @@ extern crate alloc;
 use crate::dto::{Chapters, FetchChaptersPages, GraphQLResponse, MangaData, Mangas};
 use aidoku::{
 	error::{AidokuError, AidokuErrorKind, Result},
-	helpers::uri::encode_uri,
 	prelude::*,
-	std::{defaults::defaults_get, net::Request, String, StringRef, Vec},
-	Chapter, Filter, FilterType, Listing, Manga, MangaPageResult, Page,
+	std::{defaults::defaults_get, net::Request, String, Vec},
+	Chapter, Filter, FilterType, Manga, MangaPageResult, Page,
 };
-use alloc::{borrow::ToOwned, string::ToString, vec};
+use alloc::{string::ToString};
 
 fn get_base_url() -> Result<String> {
 	defaults_get("baseURL")?
@@ -18,7 +17,7 @@ fn get_base_url() -> Result<String> {
 }
 
 #[get_manga_list]
-fn get_manga_list(filters: Vec<Filter>, page: i32) -> Result<MangaPageResult> {
+fn get_manga_list(filters: Vec<Filter>, _page: i32) -> Result<MangaPageResult> {
 	let base_url = get_base_url()?;
 
 	let query = r#"
@@ -38,7 +37,6 @@ fn get_manga_list(filters: Vec<Filter>, page: i32) -> Result<MangaPageResult> {
 			}
 		}
 		"#;
-
 
 	let mut condition = serde_json::Map::new();
 	condition.insert("inLibrary".to_string(), serde_json::json!(true));
@@ -63,12 +61,15 @@ fn get_manga_list(filters: Vec<Filter>, page: i32) -> Result<MangaPageResult> {
 					}));
 				}
 			}
-			_ => continue
+			_ => continue,
 		}
 	}
 
 	let mut variables = serde_json::Map::new();
-	variables.insert("condition".to_string(), serde_json::Value::Object(condition));
+	variables.insert(
+		"condition".to_string(),
+		serde_json::Value::Object(condition),
+	);
 	variables.insert("order".to_string(), serde_json::Value::Array(order));
 
 	let json_value = serde_json::Value::Object(variables);
@@ -169,7 +170,7 @@ fn get_chapter_list(id: String) -> Result<Vec<Chapter>> {
 		"operationName": "GET_CHAPTERS_LIST",
 		"query": query,
 		"variables": {
-			"condition": { "mangaId": 1 },
+			"condition": { "mangaId": id.parse::<i32>().expect("Invalid number") },
 			"order": [{ "by": "SOURCE_ORDER", "byType": "DESC" }]
 		}
 	});
