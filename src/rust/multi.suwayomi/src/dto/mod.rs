@@ -45,6 +45,17 @@ impl MangaDto {
 
 		let url = format!("{}/manga/{}", base_url, self.id);
 
+		let viewer = if self.genre.iter().any(|c| {
+			matches!(
+				c.to_ascii_lowercase().as_str(),
+				"manhwa" | "manhua" | "webtoon"
+			)
+		}) {
+			aidoku::MangaViewer::Scroll
+		} else {
+			aidoku::MangaViewer::Rtl
+		};
+
 		Manga {
 			id: self.id.to_string(),
 			url,
@@ -62,8 +73,8 @@ impl MangaDto {
 				"ON_HIATUS" => MangaStatus::Hiatus,
 				_ => MangaStatus::Unknown,
 			},
-			nsfw: MangaContentRating::Safe,        // TODO: Fix this
-			viewer: aidoku::MangaViewer::Vertical, // TODO: Fix this
+			nsfw: MangaContentRating::Safe, // TODO: find a way to get this
+			viewer,
 		}
 	}
 }
