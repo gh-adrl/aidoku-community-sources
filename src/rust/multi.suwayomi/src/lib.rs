@@ -29,7 +29,6 @@ fn get_manga_list(filters: Vec<Filter>, _page: i32) -> Result<MangaPageResult> {
 					thumbnailUrl
 					author
 					artist
-					url
 					genre
 					status
 					description
@@ -120,7 +119,6 @@ fn get_manga_details(id: String) -> Result<Manga> {
 				thumbnailUrl
 				author
 				artist
-				url
 				genre
 				status
 				description

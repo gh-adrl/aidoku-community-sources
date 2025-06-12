@@ -34,7 +34,6 @@ pub struct MangaDto {
 	pub thumbnail_url: String,
 	pub author: Option<String>,
 	pub artist: Option<String>,
-	pub url: String,
 	pub genre: Vec<String>,
 	pub status: String,
 	pub description: String,
@@ -43,10 +42,12 @@ pub struct MangaDto {
 impl MangaDto {
 	pub fn into_manga<T: AsRef<str>>(self, base_url: T) -> Manga {
 		let base_url = base_url.as_ref();
+		
+		let url = format!("{}/manga/{}", base_url, self.id);
 
 		Manga {
 			id: self.id.to_string(),
-			url: [base_url, &self.url].concat(),
+			url,
 			cover: [base_url, &self.thumbnail_url].concat(),
 			title: self.title.clone(),
 			author: self.author.clone().unwrap_or("Unknown".to_string()),
