@@ -8,7 +8,7 @@ use aidoku::{
 	std::{defaults::defaults_get, net::Request, String, Vec},
 	Chapter, Filter, FilterType, Manga, MangaPageResult, Page,
 };
-use alloc::{string::ToString};
+use alloc::string::ToString;
 
 fn get_base_url() -> Result<String> {
 	defaults_get("baseURL")?
@@ -64,9 +64,12 @@ fn get_manga_list(filters: Vec<Filter>, _page: i32) -> Result<MangaPageResult> {
 			}
 			FilterType::Title => {
 				if let Ok(value) = filter.value.as_string() {
-					manga_filter.insert("title".to_string(), serde_json::json!({
-						"likeInsensitive": format!("%{}%", value.read())
-					}));
+					manga_filter.insert(
+						"title".to_string(),
+						serde_json::json!({
+							"likeInsensitive": format!("%{}%", value.read())
+						}),
+					);
 				}
 			}
 			_ => continue,
@@ -74,9 +77,15 @@ fn get_manga_list(filters: Vec<Filter>, _page: i32) -> Result<MangaPageResult> {
 	}
 
 	let mut variables = serde_json::Map::new();
-	variables.insert("condition".to_string(), serde_json::Value::Object(condition));
+	variables.insert(
+		"condition".to_string(),
+		serde_json::Value::Object(condition),
+	);
 	variables.insert("order".to_string(), serde_json::Value::Array(order));
-	variables.insert("filter".to_string(), serde_json::Value::Object(manga_filter));
+	variables.insert(
+		"filter".to_string(),
+		serde_json::Value::Object(manga_filter),
+	);
 
 	let json_value = serde_json::Value::Object(variables);
 

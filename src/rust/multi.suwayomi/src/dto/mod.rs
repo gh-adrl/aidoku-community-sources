@@ -42,13 +42,13 @@ pub struct MangaDto {
 impl MangaDto {
 	pub fn into_manga<T: AsRef<str>>(self, base_url: T) -> Manga {
 		let base_url = base_url.as_ref();
-		
+
 		let url = format!("{}/manga/{}", base_url, self.id);
 
 		Manga {
 			id: self.id.to_string(),
 			url,
-			cover: [base_url, &self.thumbnail_url].concat(),
+			cover: format!("{}{}", base_url, self.thumbnail_url),
 			title: self.title.clone(),
 			author: self.author.clone().unwrap_or("Unknown".to_string()),
 			artist: self.artist.clone().unwrap_or("Unknown".to_string()),
@@ -100,11 +100,10 @@ pub struct Source {
 impl ChapterDto {
 	pub fn into_chapter<T: AsRef<str>>(self, base_url: T) -> Chapter {
 		let base_url = base_url.as_ref();
-		let url = [
-			base_url,
-			&format!("/manga/{}/chapter/{}", self.manga_id, self.source_order),
-		]
-		.concat();
+		let url = format!(
+			"{}/manga/{}/chapter/{}",
+			base_url, self.manga_id, self.source_order
+		);
 
 		let date_updated = self
 			.upload_date
