@@ -1,0 +1,13 @@
+[
+	{
+		"type": "group",
+		"title": "Settings",
+		"items": [
+			{
+				"type": "text",
+				"placeholder": "Base URL",
+				"key": "baseURL"
+			}
+		]
+	}
+]
